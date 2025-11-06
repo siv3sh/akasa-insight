@@ -62,3 +62,9 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Streamlit
+.streamlit/
+
+# Script files
+run_dashboard.sh
