@@ -498,6 +498,45 @@ The application generates the following files in the `outputs/` directory:
 - ✅ Horizontal scaling with Dask
 - ✅ Incremental processing for large datasets
 
+## Development Workflow
+
+### Running Linting
+
+```bash
+# Run Python linting
+make lint
+
+# Run frontend linting
+cd akasa-insight-nexus-main && npm run lint
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+make test
+
+# Run tests with coverage
+pytest tests/ -v --cov=src --cov-report=html
+```
+
+### Building the Project
+
+```bash
+# Build the Docker image
+make build
+
+# Build the frontend
+cd akasa-insight-nexus-main && npm run build
+```
+
+### Running CI Checks Locally
+
+```bash
+# Run all CI checks (linting, tests, builds)
+make ci
+```
+
 ## Troubleshooting
 
 ### Database Connection Issues
@@ -554,5 +593,5 @@ For questions or issues, please contact the development team.
 
 ---
 
-**Built with**: Python 3.8+, MySQL, SQLAlchemy, Pandas, Prefect, Great Expectations, Dask
+**Built with**: Python 3.11, MySQL, SQLAlchemy, Pandas, Prefect, Great Expectations, Dask, React, TypeScript, Vite
 **Last Updated**: November 2024

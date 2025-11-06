@@ -15,9 +15,9 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
@@ -25,8 +25,25 @@ jobs:
     
     - name: Lint with ruff
       run: |
-        ruff check src/ flows/
-        ruff format --check src/ flows/
+        ruff check src/ flows/ akasa-insight-nexus-main/server/
+        ruff format --check src/ flows/ akasa-insight-nexus-main/server/
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: akasa-insight-nexus-main/package-lock.json
+    
+    - name: Install frontend dependencies
+      run: |
+        cd akasa-insight-nexus-main
+        npm ci
+    
+    - name: Lint frontend
+      run: |
+        cd akasa-insight-nexus-main
+        npm run lint
 
   test:
     runs-on: ubuntu-latest
@@ -48,9 +65,9 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
@@ -82,9 +99,9 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
@@ -92,6 +109,23 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t akasa-air-data-engineering .
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: akasa-insight-nexus-main/package-lock.json
+    
+    - name: Install frontend dependencies
+      run: |
+        cd akasa-insight-nexus-main
+        npm ci
+    
+    - name: Build frontend
+      run: |
+        cd akasa-insight-nexus-main
+        npm run build
     
     - name: Archive Data Docs
       run: |

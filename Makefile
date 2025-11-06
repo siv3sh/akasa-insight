@@ -4,6 +4,7 @@
 DOCKER_COMPOSE = docker-compose
 PYTHON = python3
 PIP = pip3
+NPM = npm
 
 # Default target
 .PHONY: help
@@ -20,6 +21,10 @@ help:
 	@echo "  make clean         - Clean up temporary files"
 	@echo "  make install       - Install dependencies"
 	@echo "  make migrate       - Run database migrations"
+	@echo "  make frontend      - Install frontend dependencies"
+	@echo "  make frontend-lint - Lint frontend code"
+	@echo "  make frontend-build- Build frontend"
+	@echo "  make ci            - Run CI checks (lint, test, build)"
 
 # Start all services
 .PHONY: up
@@ -49,8 +54,9 @@ test:
 # Run linting
 .PHONY: lint
 lint:
-	$(PYTHON) -m ruff check src/ flows/
-	$(PYTHON) -m ruff format --check src/ flows/
+	$(PYTHON) -m ruff check src/ flows/ akasa-insight-nexus-main/server/
+	$(PYTHON) -m ruff format --check src/ flows/ akasa-insight-nexus-main/server/
+	cd akasa-insight-nexus-main && $(NPM) run lint
 
 # Clean temporary files
 .PHONY: clean
@@ -67,6 +73,20 @@ clean:
 install:
 	$(PIP) install -r requirements.txt
 
+# Install frontend dependencies
+.PHONY: frontend
+frontend:
+	cd akasa-insight-nexus-main && $(NPM) install
+
+# Lint frontend
+.PHONY: frontend-lint
+frontend-lint:
+	cd akasa-insight-nexus-main && $(NPM) run lint
+
+# Build frontend
+.PHONY: frontend-build
+frontend-build:
+	cd akasa-insight-nexus-main && $(NPM) run build
 
 # Run database migrations
 .PHONY: migrate
@@ -82,3 +102,8 @@ backfill:
 		exit 1; \
 	fi
 	$(DOCKER_COMPOSE) run app python flows/daily_ingestion.py --backfill-start $(START_DATE) --backfill-end $(END_DATE)
+
+# Run CI checks
+.PHONY: ci
+ci: lint test frontend-lint frontend-build
+	@echo "All CI checks passed!"
