@@ -1,0 +1,30 @@
+[
+  {
+    "customer_id": 1,
+    "customer_name": "Amit Sharma",
+    "mobile_number": "9876543210",
+    "region": "North",
+    "order_count": 3
+  },
+  {
+    "customer_id": 2,
+    "customer_name": "Priya Patel",
+    "mobile_number": "9876543211",
+    "region": "West",
+    "order_count": 3
+  },
+  {
+    "customer_id": 6,
+    "customer_name": "Anjali Desai",
+    "mobile_number": "9876543215",
+    "region": "West",
+    "order_count": 3
+  },
+  {
+    "customer_id": 7,
+    "customer_name": "Karthik Menon",
+    "mobile_number": "9876543216",
+    "region": "South",
+    "order_count": 3
+  }
+]

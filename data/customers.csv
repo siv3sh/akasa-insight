@@ -1,0 +1,21 @@
+customer_id,customer_name,mobile_number,region
+1,Amit Sharma,9876543210,North
+2,Priya Patel,9876543211,West
+3,Rahul Kumar,9876543212,South
+4,Sneha Reddy,9876543213,South
+5,Vikram Singh,9876543214,North
+6,Anjali Desai,9876543215,West
+7,Karthik Menon,9876543216,South
+8,Neha Gupta,9876543217,North
+9,Arjun Nair,9876543218,South
+10,Pooja Iyer,9876543219,East
+11,Ravi Verma,9876543220,North
+12,Divya Joshi,9876543221,West
+13,Sanjay Rao,9876543222,South
+14,Kavita Mehta,9876543223,West
+15,Aditya Sinha,9876543224,East
+16,Meera Kapoor,9876543225,North
+17,Suresh Pillai,9876543226,South
+18,Lakshmi Krishnan,9876543227,South
+19,Manish Agarwal,9876543228,North
+20,Deepika Bose,9876543229,East

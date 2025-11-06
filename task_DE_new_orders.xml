@@ -1,0 +1,88 @@
+<orders>
+  <!-- Customer: CUST-001 -->
+  <order>
+    <order_id>ORD-2025-0001</order_id>
+    <mobile_number>9123456781</mobile_number>
+    <order_date_time>2025-10-12T09:15:32</order_date_time>
+    <sku_id>SKU-1001</sku_id>
+    <sku_count>2</sku_count>
+    <total_amount>7450</total_amount>
+  </order>
+  <order>
+    <order_id>ORD-2025-0001</order_id>
+    <mobile_number>9123456781</mobile_number>
+    <order_date_time>2025-10-12T09:15:32</order_date_time>
+    <sku_id>SKU-1004</sku_id>
+    <sku_count>1</sku_count>
+    <total_amount>7450</total_amount>
+  </order>
+  <order>
+    <order_id>ORD-2025-0001</order_id>
+    <mobile_number>9123456781</mobile_number>
+    <order_date_time>2025-10-12T09:15:32</order_date_time>
+    <sku_id>SKU-1010</sku_id>
+    <sku_count>3</sku_count>
+    <total_amount>7450</total_amount>
+  </order>
+
+  <order>
+    <order_id>ORD-2025-0002</order_id>
+    <mobile_number>9123456781</mobile_number>
+    <order_date_time>2025-11-01T14:22:10</order_date_time>
+    <sku_id>SKU-1002</sku_id>
+    <sku_count>1</sku_count>
+    <total_amount>5299</total_amount>
+  </order>
+  <order>
+    <order_id>ORD-2025-0002</order_id>
+    <mobile_number>9123456781</mobile_number>
+    <order_date_time>2025-11-01T14:22:10</order_date_time>
+    <sku_id>SKU-1007</sku_id>
+    <sku_count>2</sku_count>
+    <total_amount>5299</total_amount>
+  </order>
+  <order>
+    <order_id>ORD-2025-0002</order_id>
+    <mobile_number>9123456781</mobile_number>
+    <order_date_time>2025-11-01T14:22:10</order_date_time>
+    <sku_id>SKU-1011</sku_id>
+    <sku_count>1</sku_count>
+    <total_amount>5299</total_amount>
+  </order>
+
+  <!-- Customer: CUST-002 -->
+  <order>
+    <order_id>ORD-2025-0003</order_id>
+    <mobile_number>9123456782</mobile_number>
+    <order_date_time>2025-09-30T18:45:55</order_date_time>
+    <sku_id>SKU-1003</sku_id>
+    <sku_count>4</sku_count>
+    <total_amount>8930</total_amount>
+  </order>
+  <order>
+    <order_id>ORD-2025-0003</order_id>
+    <mobile_number>9123456782</mobile_number>
+    <order_date_time>2025-09-30T18:45:55</order_date_time>
+    <sku_id>SKU-1008</sku_id>
+    <sku_count>1</sku_count>
+    <total_amount>8930</total_amount>
+  </order>
+  <order>
+    <order_id>ORD-2025-0003</order_id>
+    <mobile_number>9123456782</mobile_number>
+    <order_date_time>2025-09-30T18:45:55</order_date_time>
+    <sku_id>SKU-1010</sku_id>
+    <sku_count>2</sku_count>
+    <total_amount>8930</total_amount>
+  </order>
+  <order>
+    <order_id>ORD-2025-0003</order_id>
+    <mobile_number>9123456782</mobile_number>
+    <order_date_time>2025-09-30T18:45:55</order_date_time>
+    <sku_id>SKU-1012</sku_id>
+    <sku_count>1</sku_count>
+    <total_amount>8930</total_amount>
+  </order>
+
+  <!-- ... (similar updates for all other orders) ... -->
+</orders>

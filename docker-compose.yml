@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: akasa_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: akasa_air_db
+      MYSQL_USER: akasa_user
+      MYSQL_PASSWORD: akasa_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Main application service
+  app:
+    build: .
+    container_name: akasa_app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=akasa_user
+      - DB_PASSWORD=akasa_password
+      - DB_NAME=akasa_air_db
+    volumes:
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+    command: python src/main.py
+
+  # Scheduler service for Prefect flows
+  scheduler:
+    build: .
+    container_name: akasa_scheduler
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=akasa_user
+      - DB_PASSWORD=akasa_password
+      - DB_NAME=akasa_air_db
+    volumes:
+      - ./data:/app/data
+      - ./flows:/app/flows
+    command: python -m prefect server start
+
+  # Agent service for Prefect flows
+  agent:
+    build: .
+    container_name: akasa_agent
+    depends_on:
+      - scheduler
+    environment:
+      - PREFECT_API_URL=http://scheduler:4200/api
+    volumes:
+      - ./data:/app/data
+      - ./flows:/app/flows
+    command: prefect agent start -q default
+
+  # Streamlit dashboard
+  streamlit:
+    build: .
+    container_name: akasa_streamlit
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=akasa_user
+      - DB_PASSWORD=akasa_password
+      - DB_NAME=akasa_air_db
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./app:/app/app
+    command: streamlit run app/dashboard.py
+
+volumes:
+  mysql_data:

@@ -1,0 +1,5 @@
+customer_id,customer_name,mobile_number,region,order_count
+1,Amit Sharma,9876543210,North,3
+2,Priya Patel,9876543211,West,3
+6,Anjali Desai,9876543215,West,3
+7,Karthik Menon,9876543216,South,3

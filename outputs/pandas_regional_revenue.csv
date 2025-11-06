@@ -1,0 +1,5 @@
+region,customer_count,order_count,total_revenue,avg_order_value
+South,7,9,52002.5,5778.06
+North,6,8,46234.34,5779.29
+West,4,8,41617.17,5202.15
+East,3,3,10333.34,3444.45
