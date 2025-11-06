@@ -10,25 +10,17 @@ from pathlib import Path
 env_path = Path(__file__).parent.parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# Try to import Streamlit secrets if running in Streamlit
-try:
-    import streamlit as st
-    STREAMLIT_SECRETS = st.secrets
-except ImportError:
-    STREAMLIT_SECRETS = {}
-
-
 class Config:
     """
     Configuration class to manage application settings.
     """
     
     # Database Configuration
-    DB_HOST = STREAMLIT_SECRETS.get('mysql', {}).get('host') or os.getenv('DB_HOST', 'localhost')
-    DB_PORT = STREAMLIT_SECRETS.get('mysql', {}).get('port') or os.getenv('DB_PORT', '3306')
-    DB_USER = STREAMLIT_SECRETS.get('mysql', {}).get('user') or os.getenv('DB_USER', 'root')
-    DB_PASSWORD = STREAMLIT_SECRETS.get('mysql', {}).get('password') or os.getenv('DB_PASSWORD', '')
-    DB_NAME = STREAMLIT_SECRETS.get('mysql', {}).get('database') or os.getenv('DB_NAME', 'akasa_air_db')
+    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    DB_PORT = os.getenv('DB_PORT', '3306')
+    DB_USER = os.getenv('DB_USER', 'root')
+    DB_PASSWORD = os.getenv('DB_PASSWORD', '')
+    DB_NAME = os.getenv('DB_NAME', 'akasa_air_db')
     
     # Construct database URL for SQLAlchemy
     DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"

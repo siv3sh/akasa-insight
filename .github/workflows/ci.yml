@@ -25,8 +25,8 @@ jobs:
     
     - name: Lint with ruff
       run: |
-        ruff check src/ flows/ app/
-        ruff format --check src/ flows/ app/
+        ruff check src/ flows/
+        ruff format --check src/ flows/
 
   test:
     runs-on: ubuntu-latest
@@ -88,12 +88,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    
-    - name: Build Streamlit app
-      run: |
-        python -m streamlit hello --server.port=8501 &
-        sleep 10
-        pkill -f streamlit || true
     
     - name: Build Docker image
       run: |

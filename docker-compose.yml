@@ -71,25 +71,6 @@ services:
       - ./flows:/app/flows
     command: prefect agent start -q default
 
-  # Streamlit dashboard
-  streamlit:
-    build: .
-    container_name: akasa_streamlit
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USER=akasa_user
-      - DB_PASSWORD=akasa_password
-      - DB_NAME=akasa_air_db
-    ports:
-      - "8501:8501"
-    volumes:
-      - ./data:/app/data
-      - ./app:/app/app
-    command: streamlit run app/dashboard.py
 
 volumes:
   mysql_data:

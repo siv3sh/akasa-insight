@@ -19,7 +19,6 @@ help:
 	@echo "  make lint          - Run code linting"
 	@echo "  make clean         - Clean up temporary files"
 	@echo "  make install       - Install dependencies"
-	@echo "  make dashboard     - Start Streamlit dashboard"
 	@echo "  make migrate       - Run database migrations"
 
 # Start all services
@@ -50,8 +49,8 @@ test:
 # Run linting
 .PHONY: lint
 lint:
-	$(PYTHON) -m ruff check src/ flows/ app/
-	$(PYTHON) -m ruff format --check src/ flows/ app/
+	$(PYTHON) -m ruff check src/ flows/
+	$(PYTHON) -m ruff format --check src/ flows/
 
 # Clean temporary files
 .PHONY: clean
@@ -68,10 +67,6 @@ clean:
 install:
 	$(PIP) install -r requirements.txt
 
-# Start Streamlit dashboard
-.PHONY: dashboard
-dashboard:
-	$(PYTHON) -m streamlit run app/dashboard.py
 
 # Run database migrations
 .PHONY: migrate
