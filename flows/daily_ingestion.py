@@ -2,14 +2,14 @@
 Daily ingestion flow for processing new CSV/XML files with incremental loads.
 """
 
-import sys
 import hashlib
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
-from prefect import flow, task, get_run_logger
+from prefect import flow, get_run_logger, task
 
 # Add src to path so we can import our modules
 sys.path.append(str(Path(__file__).parent.parent / "src"))

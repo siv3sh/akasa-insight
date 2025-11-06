@@ -2,14 +2,21 @@
 Pandas-based in-memory KPI processing.
 """
 
-import pandas as pd
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
-from typing import Optional
 from pathlib import Path
+from typing import Any, Optional
+
+# Import pandas only when needed
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except ImportError:
+    pd = None
+    HAS_PANDAS = False
 
 from src.config import Config
-from src.utils import Logger, DataHelpers
+from src.utils import DataHelpers, Logger
 
 logger = Logger.get_logger(__name__)
 
@@ -23,10 +30,12 @@ class PandasAnalytics:
         """
         Initialize Pandas analytics.
         """
-        self.df_customers: Optional[pd.DataFrame] = None
-        self.df_orders: Optional[pd.DataFrame] = None
+        if not HAS_PANDAS:
+            raise ImportError("pandas is required for PandasAnalytics but not available")
+        self.df_customers: Any = None
+        self.df_orders: Any = None
 
-    def load_customers_from_csv(self, csv_path: str) -> pd.DataFrame:
+    def load_customers_from_csv(self, csv_path: str) -> Any:
         """
         Load customers data from CSV into pandas DataFrame.
 
@@ -43,7 +52,7 @@ class PandasAnalytics:
             raise FileNotFoundError("CSV file not found: {}".format(csv_path))
 
         # Read CSV
-        df = pd.read_csv(csv_path, dtype=str)
+        df = pd.read_csv(csv_path, dtype=str)  # type: ignore
 
         # Clean and normalize data
         df["customer_name"] = df["customer_name"].apply(DataHelpers.clean_string)
@@ -66,7 +75,7 @@ class PandasAnalytics:
         self.df_customers = df
         return df
 
-    def load_orders_from_xml(self, xml_path: str) -> pd.DataFrame:
+    def load_orders_from_xml(self, xml_path: str) -> Any:
         """
         Load orders data from XML into pandas DataFrame.
 
@@ -94,7 +103,7 @@ class PandasAnalytics:
             orders_data.append(order_dict)
 
         # Create DataFrame
-        df = pd.DataFrame(orders_data)
+        df = pd.DataFrame(orders_data)  # type: ignore
 
         # Clean and normalize data
         df["order_id"] = df["order_id"].apply(lambda x: DataHelpers.safe_int(x))
@@ -125,7 +134,7 @@ class PandasAnalytics:
         self.df_orders = df
         return df
 
-    def load_data(self) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def load_data(self) -> tuple[Any, Any]:
         """
         Load both customers and orders data.
 
@@ -139,9 +148,9 @@ class PandasAnalytics:
 
     def get_repeat_customers(
         self,
-        df_customers: Optional[pd.DataFrame] = None,
-        df_orders: Optional[pd.DataFrame] = None,
-    ) -> pd.DataFrame:
+        df_customers: Optional[Any] = None,
+        df_orders: Optional[Any] = None,
+    ) -> Any:
         """
         Get customers with more than one order.
 
@@ -176,8 +185,8 @@ class PandasAnalytics:
         return repeat_customers
 
     def get_monthly_order_trends(
-        self, df_orders: Optional[pd.DataFrame] = None
-    ) -> pd.DataFrame:
+        self, df_orders: Optional[Any] = None
+    ) -> Any:
         """
         Get total number of orders per month.
 
@@ -202,24 +211,19 @@ class PandasAnalytics:
         # Group by year and month
         monthly_trends = (
             df_orders_copy.groupby(["year", "month"])
-            .agg({"order_id": "count", "total_amount": "sum"})
+            .agg(
+                order_count=("order_id", "count"),
+                total_revenue=("total_amount", "sum"),
+            )
             .reset_index()
         )
 
-        monthly_trends.columns = ["year", "month", "order_count", "total_revenue"]
-        monthly_trends["total_revenue"] = monthly_trends["total_revenue"].round(2)
-        monthly_trends = monthly_trends.sort_values(["year", "month"])
-
-        logger.info("Found {} months with orders".format(len(monthly_trends)))
+        logger.info("Calculated monthly trends for {} months".format(len(monthly_trends)))
         return monthly_trends
 
-    def get_regional_revenue(
-        self,
-        df_customers: Optional[pd.DataFrame] = None,
-        df_orders: Optional[pd.DataFrame] = None,
-    ) -> pd.DataFrame:
+    def get_regional_revenue(self, df_customers: Any = None, df_orders: Any = None) -> Any:
         """
-        Get total revenue grouped by region.
+        Get revenue and order count by region.
 
         Args:
             df_customers: Customers dataframe (optional, uses loaded data if not provided)
@@ -236,67 +240,39 @@ class PandasAnalytics:
         if df_customers is None or df_orders is None:
             raise ValueError("Data not loaded. Call load_data() first.")
 
-        # Merge customers and orders
-        merged_df = df_orders.merge(
-            df_customers[["mobile_number", "region"]], on="mobile_number", how="inner"
-        )
+        # Join orders with customers to get region information
+        df_joined = df_orders.merge(df_customers, on="mobile_number", how="left")
 
         # Group by region
         regional_revenue = (
-            merged_df.groupby("region")
+            df_joined.groupby("region")
             .agg(
-                {
-                    "mobile_number": "nunique",
-                    "order_id": "count",
-                    "total_amount": ["sum", "mean"],
-                }
+                customer_count=("mobile_number", "nunique"),
+                order_count=("order_id", "count"),
+                total_revenue=("total_amount", "sum"),
             )
             .reset_index()
-        )
+        ).sort_values("total_revenue", ascending=False)
 
-        # Flatten column names
-        regional_revenue.columns = [
-            "region",
-            "customer_count",
-            "order_count",
-            "total_revenue",
-            "avg_order_value",
-        ]
-        regional_revenue["total_revenue"] = regional_revenue["total_revenue"].round(2)
-        regional_revenue["avg_order_value"] = regional_revenue["avg_order_value"].round(
-            2
-        )
-        regional_revenue = regional_revenue.sort_values(
-            "total_revenue", ascending=False
-        )
-
-        logger.info("Found revenue data for {} regions".format(len(regional_revenue)))
+        logger.info("Calculated regional revenue for {} regions".format(len(regional_revenue)))
         return regional_revenue
 
     def get_top_spenders(
-        self,
-        df_customers: Optional[pd.DataFrame] = None,
-        df_orders: Optional[pd.DataFrame] = None,
-        days: int = 30,
-        limit: int = 10,
-    ) -> pd.DataFrame:
+        self, days: int = 30, limit: int = 10, df_customers: Any = None, df_orders: Any = None
+    ) -> Any:
         """
-        Get top customers by spend in the last N days.
+        Get top spenders in the last N days.
 
         Args:
+            days: Number of days to look back
+            limit: Maximum number of customers to return
             df_customers: Customers dataframe (optional, uses loaded data if not provided)
             df_orders: Orders dataframe (optional, uses loaded data if not provided)
-            days: Number of days to look back (default: 30)
-            limit: Number of top customers to return (default: 10)
 
         Returns:
-            pd.DataFrame: Top spending customers
+            pd.DataFrame: Top spenders
         """
-        logger.info(
-            "Calculating top {} spenders for last {} days using Pandas...".format(
-                limit, days
-            )
-        )
+        logger.info("Calculating top {} spenders in last {} days using Pandas...".format(limit, days))
 
         df_customers = df_customers if df_customers is not None else self.df_customers
         df_orders = df_orders if df_orders is not None else self.df_orders
@@ -304,62 +280,22 @@ class PandasAnalytics:
         if df_customers is None or df_orders is None:
             raise ValueError("Data not loaded. Call load_data() first.")
 
-        # Calculate cutoff date
+        # Filter orders by date range
         cutoff_date = datetime.now() - timedelta(days=days)
+        df_recent_orders = df_orders[df_orders["order_date_time"] >= cutoff_date]
 
-        # Filter orders by date
-        recent_orders = df_orders[df_orders["order_date_time"] >= cutoff_date].copy()
+        # Join with customers
+        df_joined = df_recent_orders.merge(df_customers, on="mobile_number", how="left")
 
-        # Group by mobile number
-        spenders = (
-            recent_orders.groupby("mobile_number")
+        # Group by customer
+        top_spenders = (
+            df_joined.groupby(["mobile_number", "customer_name", "region"])
             .agg(
-                {
-                    "order_id": "count",
-                    "total_amount": ["sum", "mean"],
-                    "order_date_time": "max",
-                }
+                order_count=("order_id", "count"),
+                total_spent=("total_amount", "sum"),
             )
             .reset_index()
-        )
-
-        # Flatten column names
-        spenders.columns = [
-            "mobile_number",
-            "order_count",
-            "total_spent",
-            "avg_order_value",
-            "last_order_date",
-        ]
-
-        # Merge with customer data
-        top_spenders = df_customers.merge(spenders, on="mobile_number", how="inner")
-
-        # Sort and limit
-        top_spenders["total_spent"] = top_spenders["total_spent"].round(2)
-        top_spenders["avg_order_value"] = top_spenders["avg_order_value"].round(2)
-        top_spenders["last_order_date"] = top_spenders["last_order_date"].dt.strftime(
-            "%Y-%m-%d"
-        )
-        top_spenders = top_spenders.sort_values("total_spent", ascending=False).head(
-            limit
-        )
+        ).sort_values("total_spent", ascending=False)
 
         logger.info("Found {} top spenders".format(len(top_spenders)))
-        return top_spenders
-
-    def get_all_kpis(self) -> dict:
-        """
-        Calculate all KPIs and return as a dictionary.
-
-        Returns:
-            dict: All KPI results as DataFrames
-        """
-        logger.info("Calculating all KPIs using Pandas...")
-
-        return {
-            "repeat_customers": self.get_repeat_customers(),
-            "monthly_order_trends": self.get_monthly_order_trends(),
-            "regional_revenue": self.get_regional_revenue(),
-            "top_spenders_30_days": self.get_top_spenders(days=30, limit=10),
-        }
+        return top_spenders.head(limit)

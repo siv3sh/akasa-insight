@@ -4,14 +4,14 @@ Data loading module for parsing CSV/XML files and inserting into database.
 
 import csv
 import xml.etree.ElementTree as ET
-from typing import Dict
 from pathlib import Path
+from typing import Dict
 
 from sqlalchemy.exc import IntegrityError
 
-from src.database.db_setup import Customer, Order, DatabaseManager
-from src.utils import Logger, DataHelpers
 from src.config import Config
+from src.database.db_setup import Customer, DatabaseManager, Order
+from src.utils import DataHelpers, Logger
 
 logger = Logger.get_logger(__name__)
 

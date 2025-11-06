@@ -2,7 +2,7 @@
 Utils package initialization.
 """
 
-from .logger import Logger
 from .helpers import DataHelpers
+from .logger import Logger
 
 __all__ = ["Logger", "DataHelpers"]

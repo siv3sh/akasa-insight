@@ -3,10 +3,11 @@ SQL-based KPI processing using SQLAlchemy queries.
 """
 
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
-from sqlalchemy import func, desc, extract
+from typing import Any, Dict, List
 
-from src.database.db_setup import Customer, Order, DatabaseManager
+from sqlalchemy import desc, extract, func
+
+from src.database.db_setup import Customer, DatabaseManager, Order
 from src.utils import Logger
 
 logger = Logger.get_logger(__name__)

@@ -537,6 +537,64 @@ cd akasa-insight-nexus-main && npm run build
 make ci
 ```
 
+## CI & Quality
+
+### Running Linting and Formatting Locally
+
+```bash
+# Install development dependencies
+make install
+
+# Run Python linting (ruff)
+make lint
+
+# Run Python formatting check (black)
+make fmt
+
+# Run frontend linting
+make build-frontend
+```
+
+### Running Tests
+
+```bash
+# Run all tests with verbose output
+make test
+
+# Run tests with coverage report
+pytest -q -vv --maxfail=1 --disable-warnings --cov=. --cov-report=html
+```
+
+### Running Frontend Build
+
+```bash
+# Build the React frontend
+make build-frontend
+```
+
+### Common CI Failures and Fixes
+
+1. **Missing test data files**
+   - Ensure `tests/data/` directory contains sample CSV/XML files
+   - Run `make test` to verify tests can access data files
+
+2. **Path resolution errors**
+   - All file paths use `Path(__file__).parent` relative references
+   - Never rely on current working directory for file access
+
+3. **Version conflicts**
+   - CI uses Python 3.11 and Node.js 18
+   - Check `.github/workflows/ci.yml` for exact versions
+   - Use `make install` to ensure correct dependencies
+
+4. **Database connection failures in CI**
+   - Tests use temporary SQLite databases instead of MySQL
+   - No secrets or credentials required for CI execution
+
+5. **Frontend build failures**
+   - Ensure all environment variables have safe defaults
+   - Check that `.env.example` exists with placeholder values
+
 ## Troubleshooting
 
 ### Database Connection Issues

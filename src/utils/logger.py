@@ -2,11 +2,11 @@
 Logger module for centralized logging configuration with JSON support.
 """
 
+import json
 import logging
 import sys
-import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 

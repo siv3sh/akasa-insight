@@ -2,11 +2,12 @@
 Database models and setup using SQLAlchemy ORM.
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Index
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
 from datetime import datetime
 from typing import Optional
+
+from sqlalchemy import Column, DateTime, Float, Index, Integer, String, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, sessionmaker
 
 from src.config import Config
 from src.utils import Logger

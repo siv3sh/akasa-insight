@@ -2,7 +2,7 @@
 Processing package initialization.
 """
 
-from .sql_queries import SQLAnalytics
 from .pandas_processing import PandasAnalytics
+from .sql_queries import SQLAnalytics
 
 __all__ = ["SQLAnalytics", "PandasAnalytics"]

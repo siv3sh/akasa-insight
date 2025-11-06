@@ -3,6 +3,7 @@ Database migrations for performance optimization.
 """
 
 from sqlalchemy import text
+
 from src.database import DatabaseManager
 from src.utils import Logger
 
@@ -46,9 +47,9 @@ class DatabaseMigrations:
 
             # Check if indexes exist before creating them
             existing_indexes_query = """
-                SELECT index_name 
-                FROM information_schema.statistics 
-                WHERE table_schema = DATABASE() 
+                SELECT index_name
+                FROM information_schema.statistics
+                WHERE table_schema = DATABASE()
                 AND table_name IN ('customers', 'orders')
             """
 

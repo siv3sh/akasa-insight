@@ -2,10 +2,9 @@
 Helper utilities for data cleaning, normalization, and validation.
 """
 
-from datetime import datetime
-import pandas as pd
-from typing import Any
 import re
+from datetime import datetime
+from typing import Any
 
 
 class DataHelpers:
@@ -25,6 +24,15 @@ class DataHelpers:
             pd.Timestamp: Normalized timestamp or None if parsing fails
         """
         if date_value is None or date_value == "":
+            return None
+
+        # Import pandas only when needed
+        try:
+            import pandas as pd
+        except ImportError:
+            # Fallback to datetime if pandas is not available
+            if isinstance(date_value, datetime):
+                return date_value
             return None
 
         if isinstance(date_value, pd.Timestamp):
