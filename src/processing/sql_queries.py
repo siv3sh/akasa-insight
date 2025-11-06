@@ -4,8 +4,7 @@ SQL-based KPI processing using SQLAlchemy queries.
 
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
-from sqlalchemy import func, and_, desc
-from sqlalchemy.orm import Session
+from sqlalchemy import func, desc, extract
 
 from src.database.db_setup import Customer, Order, DatabaseManager
 from src.utils import Logger
@@ -71,7 +70,7 @@ class SQLAnalytics:
                 for r in results
             ]
             
-            logger.info(f"Found {len(repeat_customers)} repeat customers")
+            logger.info("Found {} repeat customers".format(len(repeat_customers)))
             return repeat_customers
             
         except Exception as e:
@@ -93,13 +92,13 @@ class SQLAnalytics:
         try:
             # Query to group orders by year-month
             query = session.query(
-                func.year(Order.order_date_time).label('year'),
-                func.month(Order.order_date_time).label('month'),
+                extract('year', Order.order_date_time).label('year'),
+                extract('month', Order.order_date_time).label('month'),
                 func.count(Order.order_id).label('order_count'),
                 func.sum(Order.total_amount).label('total_revenue')
             ).group_by(
-                func.year(Order.order_date_time),
-                func.month(Order.order_date_time)
+                extract('year', Order.order_date_time),
+                extract('month', Order.order_date_time)
             ).order_by(
                 'year', 'month'
             )
@@ -108,15 +107,15 @@ class SQLAnalytics:
             
             monthly_trends = [
                 {
-                    'year': r.year,
-                    'month': r.month,
+                    'year': int(r.year),
+                    'month': int(r.month),
                     'order_count': r.order_count,
-                    'total_revenue': round(r.total_revenue, 2) if r.total_revenue else 0
+                    'total_revenue': round(float(r.total_revenue) if r.total_revenue else 0, 2)
                 }
                 for r in results
             ]
             
-            logger.info(f"Found {len(monthly_trends)} months with orders")
+            logger.info("Found {} months with orders".format(len(monthly_trends)))
             return monthly_trends
             
         except Exception as e:
@@ -158,13 +157,13 @@ class SQLAnalytics:
                     'region': r.region,
                     'customer_count': r.customer_count,
                     'order_count': r.order_count,
-                    'total_revenue': round(r.total_revenue, 2) if r.total_revenue else 0,
-                    'avg_order_value': round(r.avg_order_value, 2) if r.avg_order_value else 0
+                    'total_revenue': round(float(r.total_revenue) if r.total_revenue else 0, 2),
+                    'avg_order_value': round(float(r.avg_order_value) if r.avg_order_value else 0, 2)
                 }
                 for r in results
             ]
             
-            logger.info(f"Found revenue data for {len(regional_revenue)} regions")
+            logger.info("Found revenue data for {} regions".format(len(regional_revenue)))
             return regional_revenue
             
         except Exception as e:
@@ -184,7 +183,7 @@ class SQLAnalytics:
         Returns:
             list: List of top spending customers
         """
-        logger.info(f"Calculating top {limit} spenders for last {days} days using SQL...")
+        logger.info("Calculating top {} spenders for last {} days using SQL...".format(limit, days))
         session = self.db_manager.get_session()
         
         try:
@@ -223,14 +222,14 @@ class SQLAnalytics:
                     'mobile_number': r.mobile_number,
                     'region': r.region,
                     'order_count': r.order_count,
-                    'total_spent': round(r.total_spent, 2) if r.total_spent else 0,
-                    'avg_order_value': round(r.avg_order_value, 2) if r.avg_order_value else 0,
+                    'total_spent': round(float(r.total_spent) if r.total_spent else 0, 2),
+                    'avg_order_value': round(float(r.avg_order_value) if r.avg_order_value else 0, 2),
                     'last_order_date': r.last_order_date.strftime('%Y-%m-%d') if r.last_order_date else None
                 }
                 for r in results
             ]
             
-            logger.info(f"Found {len(top_spenders)} top spenders")
+            logger.info("Found {} top spenders".format(len(top_spenders)))
             return top_spenders
             
         except Exception as e:

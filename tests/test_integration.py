@@ -6,9 +6,7 @@ import os
 import sys
 import pytest
 import tempfile
-import pandas as pd
 from pathlib import Path
-from sqlalchemy import create_engine
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent / "src"))
@@ -48,14 +46,6 @@ class TestIntegration:
     @pytest.fixture
     def sample_data(self, temp_db):
         """Load sample data into the temporary database."""
-        # Copy sample data files to temporary location
-        test_dir = Path(__file__).parent
-        project_root = test_dir.parent
-        
-        # Use existing data files
-        customers_path = project_root / "data" / "customers.csv"
-        orders_path = project_root / "data" / "orders.xml"
-        
         # Load data
         data_loader = DataLoader(temp_db)
         load_summary = data_loader.load_all_data()
@@ -124,6 +114,7 @@ class TestIntegration:
         
         # Pandas approach
         pandas_analytics = PandasAnalytics()
+        pandas_analytics.load_data()
         pandas_repeat_customers = pandas_analytics.get_repeat_customers()
         pandas_monthly_trends = pandas_analytics.get_monthly_order_trends()
         pandas_regional_revenue = pandas_analytics.get_regional_revenue()

@@ -4,7 +4,6 @@ Unit tests for pandas processing module.
 
 import pandas as pd
 import pytest
-from datetime import datetime
 from src.processing.pandas_processing import PandasAnalytics
 from src.utils.helpers import DataHelpers
 
@@ -121,7 +120,7 @@ class TestPandasAnalytics:
         assert len(result) == 3
         # North: 1 customer, 2 orders (Amit Sharma)
         # West: 1 customer, 2 orders (Priya Patel)
-        # South: 2 customers, 1 order (Rahul Kumar)
+        # South: 1 customer, 1 order (Rahul Kumar only, Sneha Reddy has no orders)
         
         north_data = result[result['region'] == 'North']
         assert len(north_data) == 1
@@ -135,7 +134,7 @@ class TestPandasAnalytics:
         
         south_data = result[result['region'] == 'South']
         assert len(south_data) == 1
-        assert south_data.iloc[0]['customer_count'] == 2
+        assert south_data.iloc[0]['customer_count'] == 1
         assert south_data.iloc[0]['order_count'] == 1
 
 
