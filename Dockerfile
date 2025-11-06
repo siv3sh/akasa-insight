@@ -30,7 +30,7 @@ COPY . .
 RUN mkdir -p data/incoming data/warehouse data/rejects outputs logs
 
 # Expose ports
-EXPOSE 8501 8000
+EXPOSE 8000
 
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser

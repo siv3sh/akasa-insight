@@ -41,7 +41,6 @@ Both approaches produce identical KPIs, allowing for comparison and validation o
 - **Data Quality**: Great Expectations for data validation and profiling
 - **Performance Optimization**: Database indexing and query optimization
 - **Scalability**: Dask support for large-scale data processing
-- **Visualization**: Streamlit dashboard for interactive analytics
 - **Testing**: Pytest unit and integration tests
 - **CI/CD**: GitHub Actions workflow for automated testing and deployment
 - **Containerization**: Docker and Docker Compose for easy deployment
@@ -60,8 +59,6 @@ graph TB
     D --> F[Parquet Warehouse]
     E --> G[SQL Analytics]
     H[Pandas/Dask Processing] --> I[KPI Calculations]
-    G --> J[Streamlit Dashboard]
-    I --> J
     C --> K[Rejected Records]
     L[Backfill Commands] --> C
 ```
@@ -84,7 +81,6 @@ Data Validation & Cleaning (Great Expectations)
          ┌───────────────┐
          │   Outputs     │
          ├───────────────┤
-         │ Streamlit App │
          │ JSON Reports  │
          │ CSV Exports   │
          │ Data Docs     │
@@ -93,7 +89,7 @@ Data Validation & Cleaning (Great Expectations)
 
 ### Environments
 
-1. **Local Development**: Docker Compose with MySQL, Streamlit, and Prefect
+1. **Local Development**: Docker Compose with MySQL and Prefect
 2. **CI Environment**: GitHub Actions with pytest and linting
 3. **Production**: Cloud-ready with S3 and container orchestration
 
@@ -114,7 +110,6 @@ AkasaAir-DataEngineer-Task1/
 ├── outputs/                       # Generated reports and results
 ├── reports/                       # Data quality reports and docs
 ├── flows/                         # Prefect orchestration flows
-├── app/                           # Streamlit dashboard
 ├── docs/                          # Documentation and performance notes
 ├── tests/                         # Unit and integration tests
 ├── src/                           # Source code
@@ -253,12 +248,6 @@ python -m src.main --engine dask
 
 # Run with both engines
 python -m src.main --engine both
-```
-
-### Start the Streamlit Dashboard
-
-```bash
-streamlit run app/dashboard.py
 ```
 
 ### Run Daily Ingestion Flow
@@ -538,15 +527,6 @@ The application generates the following files in the `outputs/` directory:
 
 **Solution**: Ensure Docker is running and you have proper permissions
 
-### Streamlit Dashboard Not Loading
-
-**Error**: `Connection refused` when accessing dashboard
-
-**Solution**: 
-1. Ensure the Streamlit service is running: `make dashboard`
-2. Check that the database is accessible
-3. Verify port 8501 is not blocked by firewall
-
 ### Prefect Flow Issues
 
 **Error**: `ModuleNotFoundError` when running flows
@@ -574,5 +554,5 @@ For questions or issues, please contact the development team.
 
 ---
 
-**Built with**: Python 3.8+, MySQL, SQLAlchemy, Pandas, Prefect, Streamlit, Great Expectations, Dask
+**Built with**: Python 3.8+, MySQL, SQLAlchemy, Pandas, Prefect, Great Expectations, Dask
 **Last Updated**: November 2024
