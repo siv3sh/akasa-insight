@@ -2,23 +2,20 @@
 Daily ingestion flow for processing new CSV/XML files with incremental loads.
 """
 
-import os
 import sys
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
 from prefect import flow, task, get_run_logger
-from prefect.tasks import task_input_hash
 
 # Add src to path so we can import our modules
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 from src.config import Config
 from src.database import DatabaseManager, DataLoader
-from src.utils import Logger
 
 
 @task(retries=3, retry_delay_seconds=10)
@@ -36,7 +33,7 @@ def detect_new_files(data_dir: str) -> List[Path]:
     incoming_dir = Path(data_dir) / "incoming"
     
     if not incoming_dir.exists():
-        logger.info(f"Incoming directory {incoming_dir} does not exist, creating it")
+        logger.info("Incoming directory {} does not exist, creating it".format(incoming_dir))
         incoming_dir.mkdir(parents=True, exist_ok=True)
         return []
     
@@ -47,7 +44,7 @@ def detect_new_files(data_dir: str) -> List[Path]:
     for ext in extensions:
         new_files.extend(incoming_dir.glob(ext))
     
-    logger.info(f"Detected {len(new_files)} new files in {incoming_dir}")
+    logger.info("Detected {} new files in {}".format(len(new_files), incoming_dir))
     return new_files
 
 
@@ -84,25 +81,25 @@ def validate_file_schema(file_path: Path) -> bool:
     
     try:
         if file_path.suffix.lower() == ".csv":
-            # Validate CSV schema
-            df = pd.read_csv(file_path, nrows=5)  # Read first 5 rows for schema check
-            logger.info(f"CSV schema validation passed for {file_path.name}")
+            # Validate CSV schema by reading first 5 rows
+            _ = pd.read_csv(file_path, nrows=5)  # Read first 5 rows for schema check
+            logger.info("CSV schema validation passed for {}".format(file_path.name))
             return True
         elif file_path.suffix.lower() == ".xml":
             # Basic XML validation
             with open(file_path, 'r') as f:
                 content = f.read()
                 if "<orders>" in content and "</orders>" in content:
-                    logger.info(f"XML schema validation passed for {file_path.name}")
+                    logger.info("XML schema validation passed for {}".format(file_path.name))
                     return True
                 else:
-                    logger.warning(f"XML schema validation failed for {file_path.name}")
+                    logger.warning("XML schema validation failed for {}".format(file_path.name))
                     return False
         else:
-            logger.warning(f"Unsupported file type: {file_path.suffix}")
+            logger.warning("Unsupported file type: {}".format(file_path.suffix))
             return False
     except Exception as e:
-        logger.error(f"Schema validation failed for {file_path.name}: {str(e)}")
+        logger.error("Schema validation failed for {}: {}".format(file_path.name, str(e)))
         return False
 
 
@@ -119,6 +116,7 @@ def process_incremental_load(file_path: Path, previous_day_only: bool = True) ->
         Dictionary with processing results
     """
     logger = get_run_logger()
+    db_manager = None
     
     try:
         # Initialize database
@@ -136,21 +134,21 @@ def process_incremental_load(file_path: Path, previous_day_only: bool = True) ->
         else:
             load_summary = data_loader.load_all_data()
         
-        logger.info(f"Successfully loaded {file_path.name}")
+        logger.info("Successfully loaded {}".format(file_path.name))
         return {
             "file_name": file_path.name,
             "records_loaded": load_summary,
             "status": "success"
         }
     except Exception as e:
-        logger.error(f"Failed to load {file_path.name}: {str(e)}")
+        logger.error("Failed to load {}: {}".format(file_path.name, str(e)))
         return {
             "file_name": file_path.name,
             "error": str(e),
             "status": "failed"
         }
     finally:
-        if 'db_manager' in locals():
+        if db_manager:
             db_manager.close()
 
 
@@ -174,14 +172,14 @@ def save_to_parquet_warehouse(file_path: Path, data: pd.DataFrame) -> Path:
         
         # Create parquet file name
         base_name = file_path.stem
-        parquet_file = warehouse_dir / f"{base_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.parquet"
+        parquet_file = warehouse_dir / "{}_{}.parquet".format(base_name, datetime.now().strftime('%Y%m%d_%H%M%S'))
         
         # Save to parquet
         data.to_parquet(parquet_file, index=False)
-        logger.info(f"Saved data to parquet warehouse: {parquet_file}")
+        logger.info("Saved data to parquet warehouse: {}".format(parquet_file))
         return parquet_file
     except Exception as e:
-        logger.error(f"Failed to save to parquet warehouse: {str(e)}")
+        logger.error("Failed to save to parquet warehouse: {}".format(str(e)))
         raise
 
 
@@ -207,7 +205,7 @@ def handle_rejected_records(file_path: Path, rejected_records: List[dict], reaso
         # Create rejects file name
         base_name = file_path.stem
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        rejects_file = rejects_dir / f"{base_name}_rejected_{timestamp}.json"
+        rejects_file = rejects_dir / "{}_rejected_{}.json".format(base_name, timestamp)
         
         # Save rejected records
         import json
@@ -220,10 +218,10 @@ def handle_rejected_records(file_path: Path, rejected_records: List[dict], reaso
                 "timestamp": timestamp
             }, f, indent=2)
         
-        logger.info(f"Saved {len(rejected_records)} rejected records to: {rejects_file}")
+        logger.info("Saved {} rejected records to: {}".format(len(rejected_records), rejects_file))
         return rejects_file
     except Exception as e:
-        logger.error(f"Failed to save rejected records: {str(e)}")
+        logger.error("Failed to save rejected records: {}".format(str(e)))
         raise
 
 
@@ -243,7 +241,7 @@ def daily_ingestion_flow(data_dir: str = "data", backfill_start_date: Optional[s
     
     # Handle backfill if dates are provided
     if backfill_start_date and backfill_end_date:
-        logger.info(f"Running backfill from {backfill_start_date} to {backfill_end_date}")
+        logger.info("Running backfill from {} to {}".format(backfill_start_date, backfill_end_date))
         # In a real implementation, we would process data for the date range
         # For now, we'll just process all files
         pass
@@ -258,16 +256,16 @@ def daily_ingestion_flow(data_dir: str = "data", backfill_start_date: Optional[s
     # Process each file
     results = []
     for file_path in new_files:
-        logger.info(f"Processing file: {file_path.name}")
+        logger.info("Processing file: {}".format(file_path.name))
         
         # Calculate checksum
         checksum = calculate_file_checksum(file_path)
-        logger.info(f"File checksum: {checksum}")
+        logger.info("File checksum: {}".format(checksum))
         
         # Validate schema
         is_valid = validate_file_schema(file_path)
         if not is_valid:
-            logger.warning(f"Schema validation failed for {file_path.name}, skipping")
+            logger.warning("Schema validation failed for {}, skipping".format(file_path.name))
             handle_rejected_records(file_path, [], "Schema validation failed")
             continue
         
@@ -276,11 +274,11 @@ def daily_ingestion_flow(data_dir: str = "data", backfill_start_date: Optional[s
         results.append(result)
         
         if result["status"] == "success":
-            logger.info(f"Successfully processed {file_path.name}")
+            logger.info("Successfully processed {}".format(file_path.name))
         else:
-            logger.error(f"Failed to process {file_path.name}: {result.get('error', 'Unknown error')}")
+            logger.error("Failed to process {}: {}".format(file_path.name, result.get('error', 'Unknown error')))
     
-    logger.info(f"Daily ingestion flow completed. Processed {len(results)} files")
+    logger.info("Daily ingestion flow completed. Processed {} files".format(len(results)))
 
 
 @flow(name="Backfill Data")
@@ -294,7 +292,7 @@ def backfill_flow(start_date: str, end_date: str, data_dir: str = "data"):
         data_dir: Path to data directory
     """
     logger = get_run_logger()
-    logger.info(f"Starting backfill from {start_date} to {end_date}")
+    logger.info("Starting backfill from {} to {}".format(start_date, end_date))
     
     # For backfill, we would process historical data
     # This is a simplified implementation that just calls the daily flow

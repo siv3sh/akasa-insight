@@ -120,7 +120,7 @@ def run_sql_approach():
         data_loader = DataLoader(db_manager)
         load_summary = data_loader.load_all_data()
         
-        print(f"Data Load Summary:")
+        print("Data Load Summary:")
         print(f"  - Customers loaded: {load_summary['customers_loaded']}")
         print(f"  - Orders loaded: {load_summary['orders_loaded']}")
         
@@ -176,7 +176,7 @@ def run_pandas_approach():
         logger.info("Loading data into memory using Pandas...")
         df_customers, df_orders = pandas_analytics.load_data()
         
-        print(f"Data Load Summary:")
+        print("Data Load Summary:")
         print(f"  - Customers loaded: {len(df_customers)}")
         print(f"  - Orders loaded: {len(df_orders)}")
         
@@ -231,7 +231,7 @@ def run_dask_approach():
         logger.info("Loading data into memory using Dask...")
         df_customers, df_orders = dask_analytics.load_data()
         
-        print(f"Data Load Summary:")
+        print("Data Load Summary:")
         print(f"  - Customers loaded: {len(df_customers.compute())}")
         print(f"  - Orders loaded: {len(df_orders.compute())}")
         
@@ -264,7 +264,7 @@ def run_dask_approach():
         
         logger.info("Dask-based analytics completed successfully")
         
-    except ImportError as e:
+    except ImportError:
         logger.error("Dask is not installed or not available. Please install it with: pip install dask[dataframe]")
         raise
     except Exception as e:

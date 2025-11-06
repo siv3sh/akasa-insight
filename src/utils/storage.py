@@ -6,7 +6,7 @@ import os
 import boto3
 import pandas as pd
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 from abc import ABC, abstractmethod
 
 
@@ -63,7 +63,7 @@ class LocalStorage(StorageBackend):
         elif format == 'csv':
             df.to_csv(full_path, index=False)
         else:
-            raise ValueError(f"Unsupported format: {format}")
+            raise ValueError("Unsupported format: {}".format(format))
         
         return str(full_path)
     
@@ -81,7 +81,7 @@ class LocalStorage(StorageBackend):
         full_path = self.base_path / path
         
         if not full_path.exists():
-            raise FileNotFoundError(f"File not found: {full_path}")
+            raise FileNotFoundError("File not found: {}".format(full_path))
         
         format = kwargs.get('format', 'parquet')
         if format == 'parquet':
@@ -89,7 +89,7 @@ class LocalStorage(StorageBackend):
         elif format == 'csv':
             return pd.read_csv(full_path)
         else:
-            raise ValueError(f"Unsupported format: {format}")
+            raise ValueError("Unsupported format: {}".format(format))
     
     def file_exists(self, path: str) -> bool:
         """
@@ -148,19 +148,19 @@ class S3Storage(StorageBackend):
         
         # Save to temporary local file
         import tempfile
-        with tempfile.NamedTemporaryFile(suffix=f'.{format}', delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(suffix='.{}'.format(format), delete=False) as tmp_file:
             temp_path = tmp_file.name
             if format == 'parquet':
                 df.to_parquet(temp_path, index=False)
             elif format == 'csv':
                 df.to_csv(temp_path, index=False)
             else:
-                raise ValueError(f"Unsupported format: {format}")
+                raise ValueError("Unsupported format: {}".format(format))
         
         # Upload to S3
         try:
             self.s3_client.upload_file(temp_path, self.bucket_name, path)
-            s3_uri = f"s3://{self.bucket_name}/{path}"
+            s3_uri = "s3://{}/{}".format(self.bucket_name, path)
             return s3_uri
         finally:
             # Clean up temporary file
@@ -181,7 +181,7 @@ class S3Storage(StorageBackend):
         
         # Download to temporary local file
         import tempfile
-        with tempfile.NamedTemporaryFile(suffix=f'.{format}', delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(suffix='.{}'.format(format), delete=False) as tmp_file:
             temp_path = tmp_file.name
         
         try:
@@ -194,7 +194,7 @@ class S3Storage(StorageBackend):
             elif format == 'csv':
                 return pd.read_csv(temp_path)
             else:
-                raise ValueError(f"Unsupported format: {format}")
+                raise ValueError("Unsupported format: {}".format(format))
         finally:
             # Clean up temporary file
             if os.path.exists(temp_path):
@@ -237,7 +237,7 @@ class StorageManager:
         elif backend == 's3':
             self.storage = S3Storage(**kwargs)
         else:
-            raise ValueError(f"Unsupported backend: {backend}")
+            raise ValueError("Unsupported backend: {}".format(backend))
     
     def save_dataframe(self, df: pd.DataFrame, path: str, **kwargs) -> str:
         """
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     
     # Save to local storage
     local_path = local_storage.save_dataframe(sample_df, 'sample_data.parquet')
-    print(f"Saved to local storage: {local_path}")
+    print("Saved to local storage: {}".format(local_path))
     
     # Load from local storage
     loaded_df = local_storage.load_dataframe('sample_data.parquet')
@@ -306,4 +306,4 @@ if __name__ == "__main__":
     #                            aws_access_key_id='your-access-key',
     #                            aws_secret_access_key='your-secret-key')
     # s3_path = s3_storage.save_dataframe(sample_df, 'sample_data.parquet')
-    # print(f"Saved to S3: {s3_path}")
+    # print("Saved to S3: {}".format(s3_path))

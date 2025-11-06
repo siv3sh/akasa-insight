@@ -4,10 +4,8 @@ Dask-based KPI processing for large-scale data.
 
 import dask.dataframe as dd
 import pandas as pd
-import csv
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
 from pathlib import Path
 
 from src.config import Config
@@ -39,11 +37,11 @@ class DaskAnalytics:
         Returns:
             dd.DataFrame: Customers dataframe
         """
-        logger.info(f"Loading customers from CSV using Dask: {csv_path}")
+        logger.info("Loading customers from CSV using Dask: {}".format(csv_path))
         
         if not Path(csv_path).exists():
-            logger.error(f"CSV file not found: {csv_path}")
-            raise FileNotFoundError(f"CSV file not found: {csv_path}")
+            logger.error("CSV file not found: {}".format(csv_path))
+            raise FileNotFoundError("CSV file not found: {}".format(csv_path))
         
         # Read CSV with Dask
         df = dd.read_csv(csv_path, dtype=str)
@@ -56,7 +54,7 @@ class DaskAnalytics:
         # Remove rows with missing required fields
         df = df.dropna(subset=['customer_name', 'mobile_number', 'region'])
         
-        logger.info(f"Loaded customers from CSV using Dask")
+        logger.info("Loaded customers from CSV using Dask")
         self.df_customers = df
         return df
     
@@ -70,11 +68,11 @@ class DaskAnalytics:
         Returns:
             dd.DataFrame: Orders dataframe
         """
-        logger.info(f"Loading orders from XML using Dask: {xml_path}")
+        logger.info("Loading orders from XML using Dask: {}".format(xml_path))
         
         if not Path(xml_path).exists():
-            logger.error(f"XML file not found: {xml_path}")
-            raise FileNotFoundError(f"XML file not found: {xml_path}")
+            logger.error("XML file not found: {}".format(xml_path))
+            raise FileNotFoundError("XML file not found: {}".format(xml_path))
         
         # Parse XML and convert to pandas first
         tree = ET.parse(xml_path)
@@ -105,7 +103,7 @@ class DaskAnalytics:
         df = df.dropna(subset=['order_id', 'mobile_number', 'order_date_time', 'sku_id'])
         df = df[df['order_id'] != 0]
         
-        logger.info(f"Loaded orders from XML using Dask")
+        logger.info("Loaded orders from XML using Dask")
         self.df_orders = df
         return df
     
@@ -157,7 +155,7 @@ class DaskAnalytics:
             how='inner'
         ).sort_values('order_count', ascending=False)
         
-        logger.info(f"Found {len(repeat_customers)} repeat customers")
+        logger.info("Found {} repeat customers".format(len(repeat_customers)))
         return repeat_customers
     
     def get_monthly_order_trends(self, df_orders: dd.DataFrame = None) -> pd.DataFrame:
@@ -192,7 +190,7 @@ class DaskAnalytics:
         monthly_trends['total_revenue'] = monthly_trends['total_revenue'].round(2)
         monthly_trends = monthly_trends.sort_values(['year', 'month'])
         
-        logger.info(f"Found {len(monthly_trends)} months with orders")
+        logger.info("Found {} months with orders".format(len(monthly_trends)))
         return monthly_trends
     
     def get_regional_revenue(self, df_customers: dd.DataFrame = None, df_orders: dd.DataFrame = None) -> pd.DataFrame:
@@ -237,7 +235,7 @@ class DaskAnalytics:
         regional_revenue['avg_order_value'] = regional_revenue['avg_order_value'].round(2)
         regional_revenue = regional_revenue.sort_values('total_revenue', ascending=False)
         
-        logger.info(f"Found revenue data for {len(regional_revenue)} regions")
+        logger.info("Found revenue data for {} regions".format(len(regional_revenue)))
         return regional_revenue
     
     def get_top_spenders(self, df_customers: dd.DataFrame = None, df_orders: dd.DataFrame = None, days: int = 30, limit: int = 10) -> pd.DataFrame:
@@ -253,7 +251,7 @@ class DaskAnalytics:
         Returns:
             pd.DataFrame: Top spending customers
         """
-        logger.info(f"Calculating top {limit} spenders for last {days} days using Dask...")
+        logger.info("Calculating top {} spenders for last {} days using Dask...".format(limit, days))
         
         df_customers = df_customers if df_customers is not None else self.df_customers
         df_orders = df_orders if df_orders is not None else self.df_orders
@@ -293,7 +291,7 @@ class DaskAnalytics:
         top_spenders['last_order_date'] = top_spenders['last_order_date'].dt.strftime('%Y-%m-%d')
         top_spenders = top_spenders.sort_values('total_spent', ascending=False).head(limit)
         
-        logger.info(f"Found {len(top_spenders)} top spenders")
+        logger.info("Found {} top spenders".format(len(top_spenders)))
         return top_spenders
 
 
@@ -307,12 +305,12 @@ if __name__ == "__main__":
         
         # Test repeat customers
         repeat_customers = dask_analytics.get_repeat_customers()
-        print(f"Found {len(repeat_customers)} repeat customers")
+        print("Found {} repeat customers".format(len(repeat_customers)))
         
         # Test monthly trends
         monthly_trends = dask_analytics.get_monthly_order_trends()
-        print(f"Found {len(monthly_trends)} months with orders")
+        print("Found {} months with orders".format(len(monthly_trends)))
         
     except Exception as e:
-        logger.error(f"Error in Dask processing: {str(e)}")
+        logger.error("Error in Dask processing: {}".format(str(e)))
         raise

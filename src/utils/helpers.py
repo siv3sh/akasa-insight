@@ -3,7 +3,8 @@ Helper utilities for data cleaning, normalization, and validation.
 """
 
 from datetime import datetime
-from typing import Any, Optional
+import pandas as pd
+from typing import Any
 import re
 
 
@@ -13,21 +14,24 @@ class DataHelpers:
     """
     
     @staticmethod
-    def normalize_date(date_value: Any) -> Optional[datetime]:
+    def normalize_date(date_value: Any) -> Any:
         """
-        Normalize various date formats to datetime object.
+        Normalize various date formats to pandas Timestamp.
         
         Args:
             date_value: Date value in various formats
             
         Returns:
-            datetime: Normalized datetime object or None if parsing fails
+            pd.Timestamp: Normalized timestamp or None if parsing fails
         """
         if date_value is None or date_value == '':
             return None
         
-        if isinstance(date_value, datetime):
+        if isinstance(date_value, pd.Timestamp):
             return date_value
+            
+        if isinstance(date_value, datetime):
+            return pd.Timestamp(date_value)
         
         # List of common date formats to try
         date_formats = [
@@ -49,14 +53,15 @@ class DataHelpers:
         
         for date_format in date_formats:
             try:
-                return datetime.strptime(date_str, date_format)
+                dt = datetime.strptime(date_str, date_format)
+                return pd.Timestamp(dt)
             except ValueError:
                 continue
         
         return None
     
     @staticmethod
-    def normalize_mobile_number(mobile: Any) -> Optional[str]:
+    def normalize_mobile_number(mobile: Any) -> str:
         """
         Normalize mobile number by removing special characters and spaces.
         
@@ -64,10 +69,10 @@ class DataHelpers:
             mobile: Mobile number in various formats
             
         Returns:
-            str: Normalized mobile number or None if invalid
+            str: Normalized mobile number or empty string if invalid
         """
         if mobile is None or mobile == '':
-            return None
+            return ""
         
         # Convert to string and remove all non-digit characters
         mobile_str = str(mobile).strip()
@@ -77,7 +82,7 @@ class DataHelpers:
         if len(mobile_clean) >= 10:
             return mobile_clean[-10:]  # Return last 10 digits
         
-        return None if not mobile_clean else mobile_clean
+        return mobile_clean if mobile_clean else ""
     
     @staticmethod
     def safe_float(value: Any, default: float = 0.0) -> float:
@@ -120,7 +125,7 @@ class DataHelpers:
             return default
     
     @staticmethod
-    def clean_string(value: Any) -> Optional[str]:
+    def clean_string(value: Any) -> str:
         """
         Clean and normalize string values.
         
@@ -128,13 +133,13 @@ class DataHelpers:
             value: String value to clean
             
         Returns:
-            str: Cleaned string or None if empty
+            str: Cleaned string or empty string if None
         """
         if value is None:
-            return None
+            return ""
         
         cleaned = str(value).strip()
-        return cleaned if cleaned else None
+        return cleaned if cleaned else ""
     
     @staticmethod
     def validate_required_fields(data: dict, required_fields: list) -> tuple[bool, list]:

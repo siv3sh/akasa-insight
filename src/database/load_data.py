@@ -4,10 +4,9 @@ Data loading module for parsing CSV/XML files and inserting into database.
 
 import csv
 import xml.etree.ElementTree as ET
-from typing import List, Dict, Any
+from typing import Dict
 from pathlib import Path
 
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from src.database.db_setup import Customer, Order, DatabaseManager
@@ -87,7 +86,7 @@ class DataLoader:
                         session.add(customer)
                         customers_loaded += 1
                         
-                    except IntegrityError as e:
+                    except IntegrityError:
                         session.rollback()
                         Logger.log_data_quality_issue(
                             logger,
@@ -185,7 +184,7 @@ class DataLoader:
                     session.add(order)
                     orders_loaded += 1
                     
-                except IntegrityError as e:
+                except IntegrityError:
                     session.rollback()
                     Logger.log_data_quality_issue(
                         logger,

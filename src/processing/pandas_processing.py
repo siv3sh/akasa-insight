@@ -3,10 +3,9 @@ Pandas-based in-memory KPI processing.
 """
 
 import pandas as pd
-import csv
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import Optional
 from pathlib import Path
 
 from src.config import Config
@@ -24,8 +23,8 @@ class PandasAnalytics:
         """
         Initialize Pandas analytics.
         """
-        self.df_customers = None
-        self.df_orders = None
+        self.df_customers: Optional[pd.DataFrame] = None
+        self.df_orders: Optional[pd.DataFrame] = None
     
     def load_customers_from_csv(self, csv_path: str) -> pd.DataFrame:
         """
@@ -37,11 +36,11 @@ class PandasAnalytics:
         Returns:
             pd.DataFrame: Customers dataframe
         """
-        logger.info(f"Loading customers from CSV: {csv_path}")
+        logger.info("Loading customers from CSV: {}".format(csv_path))
         
         if not Path(csv_path).exists():
-            logger.error(f"CSV file not found: {csv_path}")
-            raise FileNotFoundError(f"CSV file not found: {csv_path}")
+            logger.error("CSV file not found: {}".format(csv_path))
+            raise FileNotFoundError("CSV file not found: {}".format(csv_path))
         
         # Read CSV
         df = pd.read_csv(csv_path, dtype=str)
@@ -57,9 +56,9 @@ class PandasAnalytics:
         dropped_count = initial_count - len(df)
         
         if dropped_count > 0:
-            logger.warning(f"Dropped {dropped_count} rows with missing required fields")
+            logger.warning("Dropped {} rows with missing required fields".format(dropped_count))
         
-        logger.info(f"Loaded {len(df)} customers from CSV")
+        logger.info("Loaded {} customers from CSV".format(len(df)))
         self.df_customers = df
         return df
     
@@ -73,11 +72,11 @@ class PandasAnalytics:
         Returns:
             pd.DataFrame: Orders dataframe
         """
-        logger.info(f"Loading orders from XML: {xml_path}")
+        logger.info("Loading orders from XML: {}".format(xml_path))
         
         if not Path(xml_path).exists():
-            logger.error(f"XML file not found: {xml_path}")
-            raise FileNotFoundError(f"XML file not found: {xml_path}")
+            logger.error("XML file not found: {}".format(xml_path))
+            raise FileNotFoundError("XML file not found: {}".format(xml_path))
         
         # Parse XML
         tree = ET.parse(xml_path)
@@ -108,9 +107,9 @@ class PandasAnalytics:
         dropped_count = initial_count - len(df)
         
         if dropped_count > 0:
-            logger.warning(f"Dropped {dropped_count} rows with missing required fields")
+            logger.warning("Dropped {} rows with missing required fields".format(dropped_count))
         
-        logger.info(f"Loaded {len(df)} orders from XML")
+        logger.info("Loaded {} orders from XML".format(len(df)))
         self.df_orders = df
         return df
     
@@ -126,7 +125,7 @@ class PandasAnalytics:
         orders_df = self.load_orders_from_xml(Config.ORDERS_XML_PATH)
         return customers_df, orders_df
     
-    def get_repeat_customers(self, df_customers: pd.DataFrame = None, df_orders: pd.DataFrame = None) -> pd.DataFrame:
+    def get_repeat_customers(self, df_customers: Optional[pd.DataFrame] = None, df_orders: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         """
         Get customers with more than one order.
         
@@ -146,7 +145,8 @@ class PandasAnalytics:
             raise ValueError("Data not loaded. Call load_data() first.")
         
         # Count orders per mobile number
-        order_counts = df_orders.groupby('mobile_number').size().reset_index(name='order_count')
+        order_counts = df_orders.groupby('mobile_number').size().reset_index()
+        order_counts.columns = ['mobile_number', 'order_count']
         
         # Filter for repeat customers (more than 1 order)
         repeat_order_counts = order_counts[order_counts['order_count'] > 1]
@@ -158,10 +158,10 @@ class PandasAnalytics:
             how='inner'
         ).sort_values('order_count', ascending=False)
         
-        logger.info(f"Found {len(repeat_customers)} repeat customers")
+        logger.info("Found {} repeat customers".format(len(repeat_customers)))
         return repeat_customers
     
-    def get_monthly_order_trends(self, df_orders: pd.DataFrame = None) -> pd.DataFrame:
+    def get_monthly_order_trends(self, df_orders: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         """
         Get total number of orders per month.
         
@@ -193,10 +193,10 @@ class PandasAnalytics:
         monthly_trends['total_revenue'] = monthly_trends['total_revenue'].round(2)
         monthly_trends = monthly_trends.sort_values(['year', 'month'])
         
-        logger.info(f"Found {len(monthly_trends)} months with orders")
+        logger.info("Found {} months with orders".format(len(monthly_trends)))
         return monthly_trends
     
-    def get_regional_revenue(self, df_customers: pd.DataFrame = None, df_orders: pd.DataFrame = None) -> pd.DataFrame:
+    def get_regional_revenue(self, df_customers: Optional[pd.DataFrame] = None, df_orders: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         """
         Get total revenue grouped by region.
         
@@ -235,10 +235,10 @@ class PandasAnalytics:
         regional_revenue['avg_order_value'] = regional_revenue['avg_order_value'].round(2)
         regional_revenue = regional_revenue.sort_values('total_revenue', ascending=False)
         
-        logger.info(f"Found revenue data for {len(regional_revenue)} regions")
+        logger.info("Found revenue data for {} regions".format(len(regional_revenue)))
         return regional_revenue
     
-    def get_top_spenders(self, df_customers: pd.DataFrame = None, df_orders: pd.DataFrame = None, days: int = 30, limit: int = 10) -> pd.DataFrame:
+    def get_top_spenders(self, df_customers: Optional[pd.DataFrame] = None, df_orders: Optional[pd.DataFrame] = None, days: int = 30, limit: int = 10) -> pd.DataFrame:
         """
         Get top customers by spend in the last N days.
         
@@ -251,7 +251,7 @@ class PandasAnalytics:
         Returns:
             pd.DataFrame: Top spending customers
         """
-        logger.info(f"Calculating top {limit} spenders for last {days} days using Pandas...")
+        logger.info("Calculating top {} spenders for last {} days using Pandas...".format(limit, days))
         
         df_customers = df_customers if df_customers is not None else self.df_customers
         df_orders = df_orders if df_orders is not None else self.df_orders
@@ -288,10 +288,10 @@ class PandasAnalytics:
         top_spenders['last_order_date'] = top_spenders['last_order_date'].dt.strftime('%Y-%m-%d')
         top_spenders = top_spenders.sort_values('total_spent', ascending=False).head(limit)
         
-        logger.info(f"Found {len(top_spenders)} top spenders")
+        logger.info("Found {} top spenders".format(len(top_spenders)))
         return top_spenders
     
-    def get_all_kpis(self) -> Dict[str, pd.DataFrame]:
+    def get_all_kpis(self) -> dict:
         """
         Calculate all KPIs and return as a dictionary.
         

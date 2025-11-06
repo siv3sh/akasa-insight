@@ -8,12 +8,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from typing import List, Dict, Any
 
 # Add the project root to the path to enable imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from src.config import Config
 from src.database import DatabaseManager
 from src.processing.sql_queries import SQLAnalytics
 
@@ -78,7 +76,7 @@ def main():
         df_monthly['date'] = pd.to_datetime(df_monthly[['year', 'month']].assign(day=1))
         min_date = df_monthly['date'].min()
         max_date = df_monthly['date'].max()
-        date_range = st.sidebar.date_input(
+        _ = st.sidebar.date_input(
             "Select Date Range",
             value=(min_date, max_date),
             min_value=min_date,
