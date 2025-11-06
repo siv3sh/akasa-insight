@@ -1,5 +1,5 @@
-pandas==2.1.4
-sqlalchemy==2.0.23
+pandas==2.2.0
+sqlalchemy==1.4.30
 pymysql==1.1.0
 python-dotenv==1.0.0
 lxml==4.9.3
